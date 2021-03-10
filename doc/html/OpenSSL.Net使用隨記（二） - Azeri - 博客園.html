@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<!-- saved from url=(0044)https://www.cnblogs.com/azeri/p/8973166.html -->
+<html lang="zh-TW" class="translated-ltr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="origin">
+    <meta name="description" content="前面已经把使用OpenSSL.Net环境准备好了，现在来调用几个常用算法的实现 MD5，SHA1 在这只需要注意下OpenSSL.Crypto.MessageDiges后面签名算法会用到。 AES 1">
+    <meta property="og:description" content="前面已经把使用OpenSSL.Net环境准备好了，现在来调用几个常用算法的实现 MD5，SHA1 在这只需要注意下OpenSSL.Crypto.MessageDiges后面签名算法会用到。 AES 1">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>OpenSSL.Net使用隨記（二） - Azeri - 博客園</title>
+    <link id="favicon" rel="shortcut icon" href="https://common.cnblogs.com/favicon.svg" type="image/svg+xml">
+    
+    <link rel="stylesheet" href="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/blog-common.min.css">
+    <link id="MainCss" rel="stylesheet" href="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/bundle-cleargertrude.min.css">
+    
+    <link id="mobile-style" media="only screen and (max-width: 767px)" type="text/css" rel="stylesheet" href="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/bundle-cleargertrude-mobile.min.css">
+    
+    <link type="application/rss+xml" rel="alternate" href="https://www.cnblogs.com/azeri/rss">
+    <link type="application/rsd+xml" rel="EditURI" href="https://www.cnblogs.com/azeri/rsd.xml">
+    <link type="application/wlwmanifest+xml" rel="wlwmanifest" href="https://www.cnblogs.com/azeri/wlwmanifest.xml">
+    <script src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/osd.js.下載"></script><script async="" src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/analytics.js.下載"></script><script type="text/javascript" src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/encoder.js.下載"></script><script>
+        var currentBlogId = 81630;
+        var currentBlogApp = 'azeri';
+        var cb_enable_mathjax = false;
+        var isLogined = false;
+        var isBlogOwner = false;
+        var skinName = 'ClearGertrude';
+        var visitorUserId = '';
+    </script>
+        <script>
+            var currentPostDateAdded = '2018-04-30 04:48';
+        </script>
+    <script src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/jquery-2.2.0.min.js.下載"></script>
+    <script src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/blog-common.min.js.下載"></script><style type="text/css">.medium-zoom-overlay{position:fixed;top:0;right:0;bottom:0;left:0;opacity:0;transition:opacity .3s;will-change:opacity}.medium-zoom--opened .medium-zoom-overlay{cursor:pointer;cursor:zoom-out;opacity:1}.medium-zoom-image{cursor:pointer;cursor:zoom-in;transition:transform .3s cubic-bezier(.2,0,.2,1)!important}.medium-zoom-image--hidden{visibility:hidden}.medium-zoom-image--opened{position:relative;cursor:pointer;cursor:zoom-out;will-change:transform}</style>
+    
+    
+    
+<meta http-equiv="origin-trial" content="A+b/H0b8RPXNaJgaNFpO0YOFuGK6myDQXlwnJB3SwzvNMfcndat4DZYMrP4ClJIzYWo3/yP2S+8FTZ/lpqbPAAEAAABueyJvcmlnaW4iOiJodHRwczovL2ltYXNkay5nb29nbGVhcGlzLmNvbTo0NDMiLCJmZWF0dXJlIjoiVHJ1c3RUb2tlbnMiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzVGhpcmRQYXJ0eSI6dHJ1ZX0="><meta http-equiv="origin-trial" content="A9ZgbRtm4pU3oZiuNzOsKcC8ppFSZdcjP2qYcdQrFKVzkmiWH1kdYY1Mi9x7G8+PS8HV9Ha9Cz0gaMdKsiVZIgMAAAB7eyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiVHJ1c3RUb2tlbnMiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="AxL6oBxcpn5rQDPKSAs+d0oxNyJYq2/4esBUh3Yx5z8QfcLu+AU8iFCXYRcr/CEEfDnkxxLTsvXPJFQBxHfvkgMAAACBeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiVHJ1c3RUb2tlbnMiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="A9KPtG5kl3oLTk21xqynDPGQ5t18bSOpwt0w6kGa6dEWbuwjpffmdUpR3W+faZDubGT+KIk2do0BX2ca16x8qAcAAACBeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiVHJ1c3RUb2tlbnMiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="A3HucHUo1oW9s+9kIKz8mLkbcmdaj5lxt3eiIMp1Nh49dkkBlg1Fhg4Fd/r0vL69mRRA36YutI9P/lJUfL8csQoAAACFeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiQ29udmVyc2lvbk1lYXN1cmVtZW50IiwiZXhwaXJ5IjoxNjI2MjIwNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><script src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/pubads_impl_2021030401.js.下載" async=""></script><link rel="preload" href="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/f.txt" as="script"><script type="text/javascript" src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/f.txt"></script><link rel="preload" href="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/f(1).txt" as="script"><script type="text/javascript" src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/f(1).txt"></script><link rel="prefetch" href="https://9bd72ece752b4fd07dafc31372fbff18.safeframe.googlesyndication.com/safeframe/1-0-37/html/container.html"><link rel="prefetch" href="https://tpc.googlesyndication.com/safeframe/1-0-37/html/container.html"><link type="text/css" rel="stylesheet" charset="UTF-8" href="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/translateelement.css"></head>
+<body class="has-navbar has-bannerbar">
+    <a name="top"></a>
+        <a target="_blank" href="https://developer.aliyun.com/learning/trainingcamp/sc/3?spm=a1z389.11499242.0.0.65452413ceQQ9r&amp;utm_content=g_1000250169" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;aliyun-blog-bannerbar-pc&#39;)">
+            <div class="bannerbar aliyun forpc">
+                <div class="bannerbar aliyun forpc">
+                    <img src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/35695-20210309211229118-1704756334.jpg" alt="">
+                </div>
+            </div>
+        </a>
+
+                <div id="bannerbar" class="bannerbar-mobile formobile">
+                    <a href="https://developer.aliyun.com/learning/trainingcamp/sc/3?utm_content=g_1000248097" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;aliyun-flink-blog-mobile-banner&#39;)">
+                        <img src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/35695-20210306204758957-1451872609.jpg" alt="">
+                    </a>
+                </div>
+    <div id="top_nav" class="navbar forpc">
+        <nav id="nav_main" class="navbar-main">
+            <ul id="nav_left" class="navbar-list navbar-left">
+                <li class="navbar-branding"><a href="https://www.cnblogs.com/" title="開發者的網上家園"><img src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/logo.svg" alt="博客園Logo"></a></li>
+                <li><a href="https://www.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-sitehome&#39;)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">首頁</font></font></a></li>
+                <li><a href="https://news.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-news&#39;)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">新聞</font></font></a></li>
+                <li><a href="https://q.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-q&#39;)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">博問</font></font></a></li>
+                <li><a id="nav_brandzone" href="https://brands.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-brands&#39;)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">專區</font></font></a></li>
+                <li><a href="https://ing.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-ing&#39;)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">閃存</font></font></a></li>
+                <li><a href="https://edu.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-edu&#39;)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">班級</font></font></a></li>
+            </ul>
+            <ul id="nav_right" class="navbar-list navbar-right">
+                <li>
+                    <form id="zzk_search" class="navbar-search" action="https://zzk.cnblogs.com/s" method="get">
+                        <input name="w" id="zzk_search_input" placeholder="代碼改變世界" type="text" tabindex="3">
+                        <button type="submit" id="zzk_search_button">
+                            <img src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/search.svg" alt="搜索">
+                        </button>
+                    </form>
+                </li>
+                <li id="navbar_login_status" class="navbar-list">
+                    <a class="navbar-user-info navbar-blog" href="https://i.cnblogs.com/EditPosts.aspx?opt=1" alt="寫隨筆" title="寫隨筆" style="display: none;">
+                        <img id="new_post_icon" class="navbar-icon" src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/newpost.svg" alt="寫隨筆">
+                    </a>
+                    <a id="navblog-myblog-icon" class="navbar-user-info navbar-blog" href="https://passport.cnblogs.com/GetBlogApplyStatus.aspx" alt="我的博客" title="我的博客" style="display: none;">
+                        <img id="myblog_icon" class="navbar-icon" src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/myblog.svg" alt="我的博客">
+                    </a>
+                    <a class="navbar-user-info navbar-message navbar-icon-wrapper" href="https://msg.cnblogs.com/" alt="短消息" title="短消息" style="display: none;">
+                        <img id="msg_icon" class="navbar-icon" src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/message.svg" alt="短消息">
+                        <span id="msg_count" style="display: none"></span>
+                    </a>
+                    <div id="user_info" class="navbar-user-info dropdown" style="display: none;">
+                        <a class="dropdown-button" href="https://home.cnblogs.com/">
+                            <img id="user_icon" class="navbar-avatar" src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/avatar-default.svg" alt="用戶頭像">
+                        </a>
+                        <div class="dropdown-menu">
+                            <a id="navblog-myblog-text" href="https://passport.cnblogs.com/GetBlogApplyStatus.aspx"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">我的博客</font></font></a>
+                            <a href="https://home.cnblogs.com/"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">我的園子</font></font></a>
+                            <a href="https://account.cnblogs.com/settings/account"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">賬號設置</font></font></a>
+                            <a href="javascript:void(0)" onclick="logout();"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">退出登錄</font></font></a>
+                        </div>
+                    </div>
+                    <a class="navbar-anonymous" href="https://account.cnblogs.com/signup/" style="display: inline;"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">註冊</font></font></a>
+                    <a class="navbar-anonymous" href="javascript:void(0);" onclick="login()" style="display: inline;"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">登錄</font></font></a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    
+    <div id="header">
+<h1><a id="Header1_HeaderTitle" class="headermaintitle HeaderMainTitle" href="https://www.cnblogs.com/azeri/"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">大樹下玩耍</font></font></a>
+</h1>
+<p id="tagline"></p>
+
+</div>
+<div id="main">
+	<div id="post_detail">
+	<div class="post">
+		<h2>
+			
+<a id="cb_post_title_url" class="postTitle2 vertical-middle" href="https://www.cnblogs.com/azeri/p/8973166.html">
+    <span><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">OpenSSL.Net使用隨記（二）</font></font></span>
+    
+
+
+
+</a>
+
+		</h2>
+		<div class="postText"><div id="cnblogs_post_body" class="blogpost-body blogpost-body-html">
+<blockquote>
+<p><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">前面已經把使用OpenSSL.Net環境準備好了，現在來調用幾個常用算法的實現</font></font></p>
+</blockquote>
+<ul>
+<li><strong><span style="font-size: 16px"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">MD5，SHA1</font></font></span></strong></li>
+</ul>
+<p><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">　　在這只需要注意下OpenSSL.Crypto.MessageDiges後面簽名算法會用到。</font></font></p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="複製代碼"><img src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/copycode.gif" alt="複製代碼"></a></span></div>
+<pre><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">1 </font></font></span>     <span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">class </font></font></span><span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Program_Hash
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">2 </font></font></span> <span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">    {
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">3 </font></font></span>         <span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">static </font></font></span> <span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">void</font></font></span><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> Main( </font></font><span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">string </font></font></span><span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">[] args)
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">4 </font></font></span> <span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">        {
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">5 </font></font></span>             <span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">var</font></font></span><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> ciphertext = MD5( </font></font><span style="color: rgba(128, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">" </font></font></span><span style="color: rgba(128, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Md5加密。</font></font></span><span style="color: rgba(128, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">" </font></font></span><span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">, Encoding.UTF8);
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">6</font></font></span><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">              ciphertext = SHA1( </font></font><span style="color: rgba(128, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">" </font></font></span><span style="color: rgba(128, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">SHA1加密。</font></font></span><span style="color: rgba(128, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">" </font></font></span><span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">, Encoding.UTF8);
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">7 </font></font></span> <span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">        }
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">8 </font></font></span> 
+<span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">9 </font></font></span>         <span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">public </font></font></span> <span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">static </font></font></span> <span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">string</font></font></span><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> MD5( </font></font><span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">string </font></font></span><span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">text, Encoding encoding)
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">10 </font></font></span> <span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">        {
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">11 </font></font></span>             <span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">return </font></font></span><span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">HashDigest(text, encoding, MessageDigest.MD5);
+</font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">12 </font></font></span> <span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">        }
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">13 </font></font></span> 
+<span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">14 </font></font></span>         <span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">public </font></font></span> <span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">static </font></font></span> <span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">string</font></font></span><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> SHA1( </font></font><span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">string </font></font></span><span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">text, Encoding encoding)
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">15 </font></font></span> <span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">        {
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">16 </font></font></span>             <span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">return </font></font></span><span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">HashDigest(text, encoding, MessageDigest.SHA1);
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">17 </font></font></span> <span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">        }
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">18 </font></font></span> 
+<span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">19 </font></font></span>         <span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">private </font></font></span> <span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">static </font></font></span> <span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">string</font></font></span><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> HashDigest( </font></font><span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">string </font></font></span><span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">text, Encoding encoding, MessageDigest hashType)
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">20 </font></font></span> <span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">        {
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">21 </font></font></span>             <span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">using</font></font></span><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> (MessageDigestContext hashDigest = </font></font><span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">new </font></font></span><span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">MessageDigestContext(hashType))
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">22 </font></font></span> <span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">            {
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">23 </font></font></span>                 <span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">byte</font></font></span><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> [] hashBytes =</font></font><span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">encoding.GetBytes(text);
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">24 </font></font></span>                 <span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">byte</font></font></span><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> [] signByte = </font></font><span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">hashDigest.Digest(hashBytes);
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">25 </font></font></span>                 <span style="color: rgba(0, 0, 255, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">return</font></font></span><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> BitConverter.ToString(signByte).Replace( </font></font><span style="color: rgba(128, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">" </font></font></span><span style="color: rgba(128, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">- </font></font></span><span style="color: rgba(128, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">"</font></font></span><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> , </font></font><span style="color: rgba(128, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">"" </font></font></span><span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">).ToLower();
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">26 </font></font></span> <span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">            }
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">27 </font></font></span> <span style="color: rgba(0, 0, 0, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">        }
+ </font></font></span><span style="color: rgba(0, 128, 128, 1)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">28</font></font></span><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">      }</font></font></pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="複製代碼"><img src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/copycode.gif" alt="複製代碼"></a></span></div></div>
+<ul>
+<li><strong><span style="font-size: 16px"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">AES</font></font></span></strong></li>
+</ul>
+<p><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">　　1、在這裡SymmetricCrypt是之前項目封裝的System.Security.Cryptography.RijndaelManaged</font></font></p>
+<p><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">　　2、Key與IV是有其規律的因此IV是可以去掉</font></font></p>
+<p><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">　　3、在string與byte[]之間轉換時要注意編碼，什麼時候用Convert.FromBase64String，什麼時候用Encoding</font></font></p>
+<p><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">　　4、可以查看下Cipher封裝，裡面有不同的算法</font></font></p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="複製代碼"><img src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/copycode.gif" alt="複製代碼"></a></span></div>
+<pre><span style="color: rgba(0, 128, 128, 1)"> 1</span>     <span style="color: rgba(0, 0, 255, 1)">class</span><span style="color: rgba(0, 0, 0, 1)"> Program_Symmetric
+</span><span style="color: rgba(0, 128, 128, 1)"> 2</span> <span style="color: rgba(0, 0, 0, 1)">    {
+</span><span style="color: rgba(0, 128, 128, 1)"> 3</span>         <span style="color: rgba(0, 0, 255, 1)">static</span> <span style="color: rgba(0, 0, 255, 1)">void</span> Main(<span style="color: rgba(0, 0, 255, 1)">string</span><span style="color: rgba(0, 0, 0, 1)">[] args)
+</span><span style="color: rgba(0, 128, 128, 1)"> 4</span> <span style="color: rgba(0, 0, 0, 1)">        {
+</span><span style="color: rgba(0, 128, 128, 1)"> 5</span>             SymmetricCrypt symmetric = <span style="color: rgba(0, 0, 255, 1)">new</span><span style="color: rgba(0, 0, 0, 1)"> SymmetricCrypt(CryptType.Rijndael);
+</span><span style="color: rgba(0, 128, 128, 1)"> 6</span>             <span style="color: rgba(0, 0, 255, 1)">string</span> key = <span style="color: rgba(128, 0, 0, 1)">"</span><span style="color: rgba(128, 0, 0, 1)">PGKQBXNCiuwKmlIUThSy1h+ZHMAN+HytbZny/FepkvM=</span><span style="color: rgba(128, 0, 0, 1)">"</span><span style="color: rgba(0, 0, 0, 1)">,
+</span><span style="color: rgba(0, 128, 128, 1)"> 7</span>                 iv = <span style="color: rgba(128, 0, 0, 1)">"</span><span style="color: rgba(128, 0, 0, 1)">aqauVvyO7qvAbaDsdOeFsA==</span><span style="color: rgba(128, 0, 0, 1)">"</span><span style="color: rgba(0, 0, 0, 1)">,
+</span><span style="color: rgba(0, 128, 128, 1)"> 8</span>                 text = <span style="color: rgba(128, 0, 0, 1)">"</span><span style="color: rgba(128, 0, 0, 1)">AES256加解密。</span><span style="color: rgba(128, 0, 0, 1)">"</span><span style="color: rgba(0, 0, 0, 1)">;
+</span><span style="color: rgba(0, 128, 128, 1)"> 9</span> 
+<span style="color: rgba(0, 128, 128, 1)">10</span>             <span style="color: rgba(0, 0, 255, 1)">var</span> ctext =<span style="color: rgba(0, 0, 0, 1)"> symmetric.Encrypt(text, key, iv);
+</span><span style="color: rgba(0, 128, 128, 1)">11</span> 
+<span style="color: rgba(0, 128, 128, 1)">12</span>             <span style="color: rgba(0, 0, 255, 1)">var</span> ctext2 =<span style="color: rgba(0, 0, 0, 1)"> symmetric.Decrypt(ctext, key, iv);
+</span><span style="color: rgba(0, 128, 128, 1)">13</span> 
+<span style="color: rgba(0, 128, 128, 1)">14</span>             <span style="color: rgba(0, 0, 255, 1)">var</span> ctext3 =<span style="color: rgba(0, 0, 0, 1)"> Encrypt(ctext2, key, iv);
+</span><span style="color: rgba(0, 128, 128, 1)">15</span> 
+<span style="color: rgba(0, 128, 128, 1)">16</span> <span style="color: rgba(0, 0, 0, 1)">            Decrypt(ctext3, key, iv);
+</span><span style="color: rgba(0, 128, 128, 1)">17</span> <span style="color: rgba(0, 0, 0, 1)">        }
+</span><span style="color: rgba(0, 128, 128, 1)">18</span> 
+<span style="color: rgba(0, 128, 128, 1)">19</span>         <span style="color: rgba(0, 0, 255, 1)">public</span> <span style="color: rgba(0, 0, 255, 1)">static</span> <span style="color: rgba(0, 0, 255, 1)">string</span> Decrypt(<span style="color: rgba(0, 0, 255, 1)">string</span> text, <span style="color: rgba(0, 0, 255, 1)">string</span> key, <span style="color: rgba(0, 0, 255, 1)">string</span><span style="color: rgba(0, 0, 0, 1)"> iv)
+</span><span style="color: rgba(0, 128, 128, 1)">20</span> <span style="color: rgba(0, 0, 0, 1)">        {
+</span><span style="color: rgba(0, 128, 128, 1)">21</span>             <span style="color: rgba(0, 0, 255, 1)">byte</span>[] keyBytes =<span style="color: rgba(0, 0, 0, 1)"> Convert.FromBase64String(key);
+</span><span style="color: rgba(0, 128, 128, 1)">22</span>             <span style="color: rgba(0, 0, 255, 1)">byte</span>[] ivBytes =<span style="color: rgba(0, 0, 0, 1)"> Convert.FromBase64String(iv);
+</span><span style="color: rgba(0, 128, 128, 1)">23</span>             <span style="color: rgba(0, 0, 255, 1)">byte</span>[] textBytes =<span style="color: rgba(0, 0, 0, 1)"> Convert.FromBase64String(text);
+</span><span style="color: rgba(0, 128, 128, 1)">24</span>             <span style="color: rgba(0, 0, 255, 1)">using</span> (CipherContext cipher = <span style="color: rgba(0, 0, 255, 1)">new</span><span style="color: rgba(0, 0, 0, 1)"> CipherContext(Cipher.AES_256_CBC))
+</span><span style="color: rgba(0, 128, 128, 1)">25</span> <span style="color: rgba(0, 0, 0, 1)">            {
+</span><span style="color: rgba(0, 128, 128, 1)">26</span>                 <span style="color: rgba(0, 0, 255, 1)">byte</span>[] output =<span style="color: rgba(0, 0, 0, 1)"> cipher.Decrypt(textBytes, keyBytes, ivBytes);
+</span><span style="color: rgba(0, 128, 128, 1)">27</span>                 <span style="color: rgba(0, 0, 255, 1)">var</span> result =<span style="color: rgba(0, 0, 0, 1)"> Encoding.UTF8.GetString(output);
+</span><span style="color: rgba(0, 128, 128, 1)">28</span>                 <span style="color: rgba(0, 0, 255, 1)">return</span><span style="color: rgba(0, 0, 0, 1)"> result;
+</span><span style="color: rgba(0, 128, 128, 1)">29</span> <span style="color: rgba(0, 0, 0, 1)">            }
+</span><span style="color: rgba(0, 128, 128, 1)">30</span> <span style="color: rgba(0, 0, 0, 1)">        }
+</span><span style="color: rgba(0, 128, 128, 1)">31</span> 
+<span style="color: rgba(0, 128, 128, 1)">32</span>         <span style="color: rgba(0, 0, 255, 1)">public</span> <span style="color: rgba(0, 0, 255, 1)">static</span> <span style="color: rgba(0, 0, 255, 1)">string</span> Encrypt(<span style="color: rgba(0, 0, 255, 1)">string</span> text, <span style="color: rgba(0, 0, 255, 1)">string</span> key, <span style="color: rgba(0, 0, 255, 1)">string</span><span style="color: rgba(0, 0, 0, 1)"> iv)
+</span><span style="color: rgba(0, 128, 128, 1)">33</span> <span style="color: rgba(0, 0, 0, 1)">        {
+</span><span style="color: rgba(0, 128, 128, 1)">34</span>             <span style="color: rgba(0, 0, 255, 1)">byte</span>[] keyBytes =<span style="color: rgba(0, 0, 0, 1)"> Convert.FromBase64String(key);
+</span><span style="color: rgba(0, 128, 128, 1)">35</span>             <span style="color: rgba(0, 0, 255, 1)">byte</span>[] ivBytes =<span style="color: rgba(0, 0, 0, 1)"> Convert.FromBase64String(iv);
+</span><span style="color: rgba(0, 128, 128, 1)">36</span>             <span style="color: rgba(0, 0, 255, 1)">byte</span>[] textBytes =<span style="color: rgba(0, 0, 0, 1)"> Encoding.UTF8.GetBytes(text);
+</span><span style="color: rgba(0, 128, 128, 1)">37</span>             <span style="color: rgba(0, 0, 255, 1)">using</span> (CipherContext cipher = <span style="color: rgba(0, 0, 255, 1)">new</span><span style="color: rgba(0, 0, 0, 1)"> CipherContext(Cipher.AES_256_CBC))
+</span><span style="color: rgba(0, 128, 128, 1)">38</span> <span style="color: rgba(0, 0, 0, 1)">            {
+</span><span style="color: rgba(0, 128, 128, 1)">39</span>                 <span style="color: rgba(0, 0, 255, 1)">byte</span>[] output =<span style="color: rgba(0, 0, 0, 1)"> cipher.Encrypt(textBytes, keyBytes, ivBytes);
+</span><span style="color: rgba(0, 128, 128, 1)">40</span>                 <span style="color: rgba(0, 0, 255, 1)">var</span> result =<span style="color: rgba(0, 0, 0, 1)"> Convert.ToBase64String(output);
+</span><span style="color: rgba(0, 128, 128, 1)">41</span>                 <span style="color: rgba(0, 0, 255, 1)">return</span><span style="color: rgba(0, 0, 0, 1)"> result;
+</span><span style="color: rgba(0, 128, 128, 1)">42</span> <span style="color: rgba(0, 0, 0, 1)">            }
+</span><span style="color: rgba(0, 128, 128, 1)">43</span> <span style="color: rgba(0, 0, 0, 1)">        }
+</span><span style="color: rgba(0, 128, 128, 1)">44</span>     }</pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="複製代碼"><img src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/copycode.gif" alt="複製代碼"></a></span></div></div>
+<ul>
+<li><strong><span style="font-size: 16px">RSA</span></strong></li>
+</ul>
+<p>　　1、公钥与私钥可以用OpenSSL命令行随意生成</p>
+<p>　　2、OpenSSL.Core.BIO简单理解是用于装载密钥的容器</p>
+<p>　　3、注意OpenSSL.Crypto.RSA的静态方法</p>
+<p>　　4、OpenSSL.Crypto.CryptoKey用于装载BIO能把密钥转换成具体的算法对象，这个类的作用很大，涉及到签名验签都会用到</p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="複製代碼"><img src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/copycode.gif" alt="複製代碼"></a></span></div>
+<pre><span style="color: rgba(0, 128, 128, 1)">  1</span> <span style="color: rgba(0, 0, 255, 1)">class</span><span style="color: rgba(0, 0, 0, 1)"> Program_RSA
+</span><span style="color: rgba(0, 128, 128, 1)">  2</span> <span style="color: rgba(0, 0, 0, 1)">    {
+</span><span style="color: rgba(0, 128, 128, 1)">  3</span>         <span style="color: rgba(0, 0, 255, 1)">static</span> <span style="color: rgba(0, 0, 255, 1)">void</span> Main(<span style="color: rgba(0, 0, 255, 1)">string</span><span style="color: rgba(0, 0, 0, 1)">[] args)
+</span><span style="color: rgba(0, 128, 128, 1)">  4</span> <span style="color: rgba(0, 0, 0, 1)">        {
+</span><span style="color: rgba(0, 128, 128, 1)">  5</span>             <span style="color: rgba(0, 0, 255, 1)">string</span> privateKey = <span style="color: rgba(128, 0, 0, 1)">""</span>, publicKey = <span style="color: rgba(128, 0, 0, 1)">""</span>, text = <span style="color: rgba(128, 0, 0, 1)">"</span><span style="color: rgba(128, 0, 0, 1)">RSA-1024加解密。</span><span style="color: rgba(128, 0, 0, 1)">"</span>, ctext = <span style="color: rgba(128, 0, 0, 1)">""</span><span style="color: rgba(0, 0, 0, 1)">;
+</span><span style="color: rgba(0, 128, 128, 1)">  6</span>             <span style="color: rgba(0, 0, 255, 1)">int</span> padding = <span style="color: rgba(128, 0, 128, 1)">1</span><span style="color: rgba(0, 0, 0, 1)">;
+</span><span style="color: rgba(0, 128, 128, 1)">  7</span>             Encoding encoding =<span style="color: rgba(0, 0, 0, 1)"> Encoding.UTF8;
+</span><span style="color: rgba(0, 128, 128, 1)">  8</span>             <span style="color: rgba(0, 0, 255, 1)">using</span> (RSA rsa = <span style="color: rgba(0, 0, 255, 1)">new</span><span style="color: rgba(0, 0, 0, 1)"> RSA())
+</span><span style="color: rgba(0, 128, 128, 1)">  9</span> <span style="color: rgba(0, 0, 0, 1)">            {
+</span><span style="color: rgba(0, 128, 128, 1)"> 10</span>                 rsa.GenerateKeys(<span style="color: rgba(128, 0, 128, 1)">1024</span>, BigNumber.One, <span style="color: rgba(0, 0, 255, 1)">null</span>, <span style="color: rgba(0, 0, 255, 1)">null</span><span style="color: rgba(0, 0, 0, 1)">);
+</span><span style="color: rgba(0, 128, 128, 1)"> 11</span>                 privateKey =<span style="color: rgba(0, 0, 0, 1)"> rsa.PrivateKeyAsPEM;
+</span><span style="color: rgba(0, 128, 128, 1)"> 12</span>                 publicKey =<span style="color: rgba(0, 0, 0, 1)"> rsa.PublicKeyAsPEM;
+</span><span style="color: rgba(0, 128, 128, 1)"> 13</span> <span style="color: rgba(0, 0, 0, 1)">            }
+</span><span style="color: rgba(0, 128, 128, 1)"> 14</span> 
+<span style="color: rgba(0, 128, 128, 1)"> 15</span>             ctext =<span style="color: rgba(0, 0, 0, 1)"> PrivateEncrypt(privateKey, text, encoding, padding);
+</span><span style="color: rgba(0, 128, 128, 1)"> 16</span>             text =<span style="color: rgba(0, 0, 0, 1)"> PublicDecrypt(publicKey, ctext, encoding, padding);
+</span><span style="color: rgba(0, 128, 128, 1)"> 17</span> 
+<span style="color: rgba(0, 128, 128, 1)"> 18</span>             ctext =<span style="color: rgba(0, 0, 0, 1)"> PublicEncrypt(publicKey, text, encoding, padding);
+</span><span style="color: rgba(0, 128, 128, 1)"> 19</span>             text =<span style="color: rgba(0, 0, 0, 1)"> PrivateDecrypt(privateKey, ctext, encoding, padding);
+</span><span style="color: rgba(0, 128, 128, 1)"> 20</span> 
+<span style="color: rgba(0, 128, 128, 1)"> 21</span>             <span style="color: rgba(0, 0, 255, 1)">var</span> signText =<span style="color: rgba(0, 0, 0, 1)"> Sign(privateKey, text, encoding);
+</span><span style="color: rgba(0, 128, 128, 1)"> 22</span>             <span style="color: rgba(0, 0, 255, 1)">var</span> signTag =<span style="color: rgba(0, 0, 0, 1)"> Verify(publicKey, text, signText, encoding);
+</span><span style="color: rgba(0, 128, 128, 1)"> 23</span> 
+<span style="color: rgba(0, 128, 128, 1)"> 24</span> <span style="color: rgba(0, 0, 0, 1)">        }
+</span><span style="color: rgba(0, 128, 128, 1)"> 25</span> 
+<span style="color: rgba(0, 128, 128, 1)"> 26</span>         <span style="color: rgba(128, 128, 128, 1)">///</span> <span style="color: rgba(128, 128, 128, 1)">&lt;summary&gt;</span>
+<span style="color: rgba(0, 128, 128, 1)"> 27</span>         <span style="color: rgba(128, 128, 128, 1)">///</span><span style="color: rgba(0, 128, 0, 1)"> 私钥解密
+</span><span style="color: rgba(0, 128, 128, 1)"> 28</span>         <span style="color: rgba(128, 128, 128, 1)">///</span> <span style="color: rgba(128, 128, 128, 1)">&lt;/summary&gt;</span>
+<span style="color: rgba(0, 128, 128, 1)"> 29</span>         <span style="color: rgba(0, 0, 255, 1)">public</span> <span style="color: rgba(0, 0, 255, 1)">static</span> <span style="color: rgba(0, 0, 255, 1)">string</span> PrivateDecrypt(<span style="color: rgba(0, 0, 255, 1)">string</span> privateKey, <span style="color: rgba(0, 0, 255, 1)">string</span> text, Encoding encoding, <span style="color: rgba(0, 0, 255, 1)">int</span><span style="color: rgba(0, 0, 0, 1)"> padding)
+</span><span style="color: rgba(0, 128, 128, 1)"> 30</span> <span style="color: rgba(0, 0, 0, 1)">        {
+</span><span style="color: rgba(0, 128, 128, 1)"> 31</span>             <span style="color: rgba(0, 0, 255, 1)">byte</span>[] textBytes =<span style="color: rgba(0, 0, 0, 1)"> Convert.FromBase64String(text);
+</span><span style="color: rgba(0, 128, 128, 1)"> 32</span>             <span style="color: rgba(0, 0, 255, 1)">using</span> (BIO bio = <span style="color: rgba(0, 0, 255, 1)">new</span><span style="color: rgba(0, 0, 0, 1)"> BIO(privateKey))
+</span><span style="color: rgba(0, 128, 128, 1)"> 33</span> <span style="color: rgba(0, 0, 0, 1)">            {
+</span><span style="color: rgba(0, 128, 128, 1)"> 34</span>                 <span style="color: rgba(0, 0, 255, 1)">using</span> (RSA rsa =<span style="color: rgba(0, 0, 0, 1)"> RSA.FromPrivateKey(bio))
+</span><span style="color: rgba(0, 128, 128, 1)"> 35</span> <span style="color: rgba(0, 0, 0, 1)">                {
+</span><span style="color: rgba(0, 128, 128, 1)"> 36</span>                     textBytes =<span style="color: rgba(0, 0, 0, 1)"> rsa.PrivateDecrypt(textBytes, (RSA.Padding)padding);
+</span><span style="color: rgba(0, 128, 128, 1)"> 37</span> <span style="color: rgba(0, 0, 0, 1)">                }
+</span><span style="color: rgba(0, 128, 128, 1)"> 38</span> <span style="color: rgba(0, 0, 0, 1)">            }
+</span><span style="color: rgba(0, 128, 128, 1)"> 39</span>             <span style="color: rgba(0, 0, 255, 1)">return</span><span style="color: rgba(0, 0, 0, 1)"> encoding.GetString(textBytes);
+</span><span style="color: rgba(0, 128, 128, 1)"> 40</span> <span style="color: rgba(0, 0, 0, 1)">        }
+</span><span style="color: rgba(0, 128, 128, 1)"> 41</span> 
+<span style="color: rgba(0, 128, 128, 1)"> 42</span>         <span style="color: rgba(128, 128, 128, 1)">///</span> <span style="color: rgba(128, 128, 128, 1)">&lt;summary&gt;</span>
+<span style="color: rgba(0, 128, 128, 1)"> 43</span>         <span style="color: rgba(128, 128, 128, 1)">///</span><span style="color: rgba(0, 128, 0, 1)"> 私钥加密
+</span><span style="color: rgba(0, 128, 128, 1)"> 44</span>         <span style="color: rgba(128, 128, 128, 1)">///</span> <span style="color: rgba(128, 128, 128, 1)">&lt;/summary&gt;</span>
+<span style="color: rgba(0, 128, 128, 1)"> 45</span>         <span style="color: rgba(0, 0, 255, 1)">public</span> <span style="color: rgba(0, 0, 255, 1)">static</span> <span style="color: rgba(0, 0, 255, 1)">string</span> PrivateEncrypt(<span style="color: rgba(0, 0, 255, 1)">string</span> privateKey, <span style="color: rgba(0, 0, 255, 1)">string</span> text, Encoding encoding, <span style="color: rgba(0, 0, 255, 1)">int</span><span style="color: rgba(0, 0, 0, 1)"> padding)
+</span><span style="color: rgba(0, 128, 128, 1)"> 46</span> <span style="color: rgba(0, 0, 0, 1)">        {
+</span><span style="color: rgba(0, 128, 128, 1)"> 47</span>             <span style="color: rgba(0, 0, 255, 1)">byte</span>[] textBytes =<span style="color: rgba(0, 0, 0, 1)"> encoding.GetBytes(text);
+</span><span style="color: rgba(0, 128, 128, 1)"> 48</span>             <span style="color: rgba(0, 0, 255, 1)">using</span> (BIO bio = <span style="color: rgba(0, 0, 255, 1)">new</span><span style="color: rgba(0, 0, 0, 1)"> BIO(privateKey))
+</span><span style="color: rgba(0, 128, 128, 1)"> 49</span> <span style="color: rgba(0, 0, 0, 1)">            {
+</span><span style="color: rgba(0, 128, 128, 1)"> 50</span>                 <span style="color: rgba(0, 0, 255, 1)">using</span> (RSA rsa =<span style="color: rgba(0, 0, 0, 1)"> RSA.FromPrivateKey(bio))
+</span><span style="color: rgba(0, 128, 128, 1)"> 51</span> <span style="color: rgba(0, 0, 0, 1)">                {
+</span><span style="color: rgba(0, 128, 128, 1)"> 52</span>                     textBytes =<span style="color: rgba(0, 0, 0, 1)"> rsa.PrivateEncrypt(textBytes, (RSA.Padding)padding);
+</span><span style="color: rgba(0, 128, 128, 1)"> 53</span> <span style="color: rgba(0, 0, 0, 1)">                }
+</span><span style="color: rgba(0, 128, 128, 1)"> 54</span> <span style="color: rgba(0, 0, 0, 1)">            }
+</span><span style="color: rgba(0, 128, 128, 1)"> 55</span>             <span style="color: rgba(0, 0, 255, 1)">return</span><span style="color: rgba(0, 0, 0, 1)"> Convert.ToBase64String(textBytes);
+</span><span style="color: rgba(0, 128, 128, 1)"> 56</span> <span style="color: rgba(0, 0, 0, 1)">        }
+</span><span style="color: rgba(0, 128, 128, 1)"> 57</span> 
+<span style="color: rgba(0, 128, 128, 1)"> 58</span>         <span style="color: rgba(128, 128, 128, 1)">///</span> <span style="color: rgba(128, 128, 128, 1)">&lt;summary&gt;</span>
+<span style="color: rgba(0, 128, 128, 1)"> 59</span>         <span style="color: rgba(128, 128, 128, 1)">///</span><span style="color: rgba(0, 128, 0, 1)"> 公钥解密
+</span><span style="color: rgba(0, 128, 128, 1)"> 60</span>         <span style="color: rgba(128, 128, 128, 1)">///</span> <span style="color: rgba(128, 128, 128, 1)">&lt;/summary&gt;</span>
+<span style="color: rgba(0, 128, 128, 1)"> 61</span>         <span style="color: rgba(0, 0, 255, 1)">public</span> <span style="color: rgba(0, 0, 255, 1)">static</span> <span style="color: rgba(0, 0, 255, 1)">string</span> PublicDecrypt(<span style="color: rgba(0, 0, 255, 1)">string</span> publicKey, <span style="color: rgba(0, 0, 255, 1)">string</span> text, Encoding encoding, <span style="color: rgba(0, 0, 255, 1)">int</span><span style="color: rgba(0, 0, 0, 1)"> padding)
+</span><span style="color: rgba(0, 128, 128, 1)"> 62</span> <span style="color: rgba(0, 0, 0, 1)">        {
+</span><span style="color: rgba(0, 128, 128, 1)"> 63</span>             <span style="color: rgba(0, 0, 255, 1)">byte</span>[] textBytes =<span style="color: rgba(0, 0, 0, 1)"> Convert.FromBase64String(text);
+</span><span style="color: rgba(0, 128, 128, 1)"> 64</span>             <span style="color: rgba(0, 0, 255, 1)">using</span> (BIO bio = <span style="color: rgba(0, 0, 255, 1)">new</span><span style="color: rgba(0, 0, 0, 1)"> BIO(publicKey))
+</span><span style="color: rgba(0, 128, 128, 1)"> 65</span> <span style="color: rgba(0, 0, 0, 1)">            {
+</span><span style="color: rgba(0, 128, 128, 1)"> 66</span>                 <span style="color: rgba(0, 0, 255, 1)">using</span> (RSA rsa =<span style="color: rgba(0, 0, 0, 1)"> RSA.FromPublicKey(bio))
+</span><span style="color: rgba(0, 128, 128, 1)"> 67</span> <span style="color: rgba(0, 0, 0, 1)">                {
+</span><span style="color: rgba(0, 128, 128, 1)"> 68</span>                     textBytes =<span style="color: rgba(0, 0, 0, 1)"> rsa.PublicDecrypt(textBytes, (RSA.Padding)padding);
+</span><span style="color: rgba(0, 128, 128, 1)"> 69</span> <span style="color: rgba(0, 0, 0, 1)">                }
+</span><span style="color: rgba(0, 128, 128, 1)"> 70</span> <span style="color: rgba(0, 0, 0, 1)">            }
+</span><span style="color: rgba(0, 128, 128, 1)"> 71</span>             <span style="color: rgba(0, 0, 255, 1)">return</span><span style="color: rgba(0, 0, 0, 1)"> encoding.GetString(textBytes);
+</span><span style="color: rgba(0, 128, 128, 1)"> 72</span> <span style="color: rgba(0, 0, 0, 1)">        }
+</span><span style="color: rgba(0, 128, 128, 1)"> 73</span> 
+<span style="color: rgba(0, 128, 128, 1)"> 74</span>         <span style="color: rgba(128, 128, 128, 1)">///</span> <span style="color: rgba(128, 128, 128, 1)">&lt;summary&gt;</span>
+<span style="color: rgba(0, 128, 128, 1)"> 75</span>         <span style="color: rgba(128, 128, 128, 1)">///</span><span style="color: rgba(0, 128, 0, 1)"> 公钥加密
+</span><span style="color: rgba(0, 128, 128, 1)"> 76</span>         <span style="color: rgba(128, 128, 128, 1)">///</span> <span style="color: rgba(128, 128, 128, 1)">&lt;/summary&gt;</span>
+<span style="color: rgba(0, 128, 128, 1)"> 77</span>         <span style="color: rgba(0, 0, 255, 1)">public</span> <span style="color: rgba(0, 0, 255, 1)">static</span> <span style="color: rgba(0, 0, 255, 1)">string</span> PublicEncrypt(<span style="color: rgba(0, 0, 255, 1)">string</span> publicKey, <span style="color: rgba(0, 0, 255, 1)">string</span> text, Encoding encoding, <span style="color: rgba(0, 0, 255, 1)">int</span><span style="color: rgba(0, 0, 0, 1)"> padding)
+</span><span style="color: rgba(0, 128, 128, 1)"> 78</span> <span style="color: rgba(0, 0, 0, 1)">        {
+</span><span style="color: rgba(0, 128, 128, 1)"> 79</span>             <span style="color: rgba(0, 0, 255, 1)">byte</span>[] textBytes =<span style="color: rgba(0, 0, 0, 1)"> encoding.GetBytes(text);
+</span><span style="color: rgba(0, 128, 128, 1)"> 80</span>             <span style="color: rgba(0, 0, 255, 1)">using</span> (BIO bio = <span style="color: rgba(0, 0, 255, 1)">new</span><span style="color: rgba(0, 0, 0, 1)"> BIO(publicKey))
+</span><span style="color: rgba(0, 128, 128, 1)"> 81</span> <span style="color: rgba(0, 0, 0, 1)">            {
+</span><span style="color: rgba(0, 128, 128, 1)"> 82</span>                 <span style="color: rgba(0, 0, 255, 1)">using</span> (RSA rsa =<span style="color: rgba(0, 0, 0, 1)"> RSA.FromPublicKey(bio))
+</span><span style="color: rgba(0, 128, 128, 1)"> 83</span> <span style="color: rgba(0, 0, 0, 1)">                {
+</span><span style="color: rgba(0, 128, 128, 1)"> 84</span>                     textBytes =<span style="color: rgba(0, 0, 0, 1)"> rsa.PublicEncrypt(textBytes, (RSA.Padding)padding);
+</span><span style="color: rgba(0, 128, 128, 1)"> 85</span> <span style="color: rgba(0, 0, 0, 1)">                    rsa.Dispose();
+</span><span style="color: rgba(0, 128, 128, 1)"> 86</span> <span style="color: rgba(0, 0, 0, 1)">                }
+</span><span style="color: rgba(0, 128, 128, 1)"> 87</span> <span style="color: rgba(0, 0, 0, 1)">                bio.Dispose();
+</span><span style="color: rgba(0, 128, 128, 1)"> 88</span> <span style="color: rgba(0, 0, 0, 1)">            }
+</span><span style="color: rgba(0, 128, 128, 1)"> 89</span>             <span style="color: rgba(0, 0, 255, 1)">return</span><span style="color: rgba(0, 0, 0, 1)"> Convert.ToBase64String(textBytes);
+</span><span style="color: rgba(0, 128, 128, 1)"> 90</span> <span style="color: rgba(0, 0, 0, 1)">        }
+</span><span style="color: rgba(0, 128, 128, 1)"> 91</span> 
+<span style="color: rgba(0, 128, 128, 1)"> 92</span>         <span style="color: rgba(128, 128, 128, 1)">///</span> <span style="color: rgba(128, 128, 128, 1)">&lt;summary&gt;</span>
+<span style="color: rgba(0, 128, 128, 1)"> 93</span>         <span style="color: rgba(128, 128, 128, 1)">///</span><span style="color: rgba(0, 128, 0, 1)"> 私钥签名
+</span><span style="color: rgba(0, 128, 128, 1)"> 94</span>         <span style="color: rgba(128, 128, 128, 1)">///</span> <span style="color: rgba(128, 128, 128, 1)">&lt;/summary&gt;</span>
+<span style="color: rgba(0, 128, 128, 1)"> 95</span>         <span style="color: rgba(0, 0, 255, 1)">public</span> <span style="color: rgba(0, 0, 255, 1)">static</span> <span style="color: rgba(0, 0, 255, 1)">string</span> Sign(<span style="color: rgba(0, 0, 255, 1)">string</span> privateKey, <span style="color: rgba(0, 0, 255, 1)">string</span><span style="color: rgba(0, 0, 0, 1)"> text, Encoding encoding)
+</span><span style="color: rgba(0, 128, 128, 1)"> 96</span> <span style="color: rgba(0, 0, 0, 1)">        {
+</span><span style="color: rgba(0, 128, 128, 1)"> 97</span>             <span style="color: rgba(0, 0, 255, 1)">using</span> (BIO bio = <span style="color: rgba(0, 0, 255, 1)">new</span><span style="color: rgba(0, 0, 0, 1)"> BIO(privateKey))
+</span><span style="color: rgba(0, 128, 128, 1)"> 98</span> <span style="color: rgba(0, 0, 0, 1)">            {
+</span><span style="color: rgba(0, 128, 128, 1)"> 99</span>                 <span style="color: rgba(0, 0, 255, 1)">using</span> (CryptoKey cryptoKey = CryptoKey.FromPrivateKey(bio, <span style="color: rgba(0, 0, 255, 1)">null</span><span style="color: rgba(0, 0, 0, 1)">))
+</span><span style="color: rgba(0, 128, 128, 1)">100</span> <span style="color: rgba(0, 0, 0, 1)">                {
+</span><span style="color: rgba(0, 128, 128, 1)">101</span>                     <span style="color: rgba(0, 0, 255, 1)">using</span> (MessageDigestContext sha256 = <span style="color: rgba(0, 0, 255, 1)">new</span><span style="color: rgba(0, 0, 0, 1)"> MessageDigestContext(MessageDigest.SHA256))
+</span><span style="color: rgba(0, 128, 128, 1)">102</span> <span style="color: rgba(0, 0, 0, 1)">                    {
+</span><span style="color: rgba(0, 128, 128, 1)">103</span>                         <span style="color: rgba(0, 0, 255, 1)">byte</span>[] msgByte =<span style="color: rgba(0, 0, 0, 1)"> encoding.GetBytes(text);
+</span><span style="color: rgba(0, 128, 128, 1)">104</span>                         <span style="color: rgba(0, 0, 255, 1)">byte</span>[] signByte =<span style="color: rgba(0, 0, 0, 1)"> sha256.Sign(msgByte, cryptoKey);
+</span><span style="color: rgba(0, 128, 128, 1)">105</span>                         <span style="color: rgba(0, 0, 255, 1)">return</span><span style="color: rgba(0, 0, 0, 1)"> Convert.ToBase64String(signByte);
+</span><span style="color: rgba(0, 128, 128, 1)">106</span> <span style="color: rgba(0, 0, 0, 1)">                    }
+</span><span style="color: rgba(0, 128, 128, 1)">107</span> <span style="color: rgba(0, 0, 0, 1)">                }
+</span><span style="color: rgba(0, 128, 128, 1)">108</span> <span style="color: rgba(0, 0, 0, 1)">            }
+</span><span style="color: rgba(0, 128, 128, 1)">109</span> <span style="color: rgba(0, 0, 0, 1)">        }
+</span><span style="color: rgba(0, 128, 128, 1)">110</span> 
+<span style="color: rgba(0, 128, 128, 1)">111</span>         <span style="color: rgba(128, 128, 128, 1)">///</span> <span style="color: rgba(128, 128, 128, 1)">&lt;summary&gt;</span>
+<span style="color: rgba(0, 128, 128, 1)">112</span>         <span style="color: rgba(128, 128, 128, 1)">///</span><span style="color: rgba(0, 128, 0, 1)"> 公钥验签
+</span><span style="color: rgba(0, 128, 128, 1)">113</span>         <span style="color: rgba(128, 128, 128, 1)">///</span> <span style="color: rgba(128, 128, 128, 1)">&lt;/summary&gt;</span>
+<span style="color: rgba(0, 128, 128, 1)">114</span>         <span style="color: rgba(0, 0, 255, 1)">public</span> <span style="color: rgba(0, 0, 255, 1)">static</span> <span style="color: rgba(0, 0, 255, 1)">bool</span> Verify(<span style="color: rgba(0, 0, 255, 1)">string</span> publicKey, <span style="color: rgba(0, 0, 255, 1)">string</span> text, <span style="color: rgba(0, 0, 255, 1)">string</span><span style="color: rgba(0, 0, 0, 1)"> sign, Encoding encoding)
+</span><span style="color: rgba(0, 128, 128, 1)">115</span> <span style="color: rgba(0, 0, 0, 1)">        {
+</span><span style="color: rgba(0, 128, 128, 1)">116</span>             <span style="color: rgba(0, 0, 255, 1)">using</span> (BIO bio = <span style="color: rgba(0, 0, 255, 1)">new</span><span style="color: rgba(0, 0, 0, 1)"> BIO(publicKey))
+</span><span style="color: rgba(0, 128, 128, 1)">117</span> <span style="color: rgba(0, 0, 0, 1)">            {
+</span><span style="color: rgba(0, 128, 128, 1)">118</span>                 <span style="color: rgba(0, 0, 255, 1)">using</span> (CryptoKey cryptoKey = CryptoKey.FromPublicKey(bio, <span style="color: rgba(0, 0, 255, 1)">null</span><span style="color: rgba(0, 0, 0, 1)">))
+</span><span style="color: rgba(0, 128, 128, 1)">119</span> <span style="color: rgba(0, 0, 0, 1)">                {
+</span><span style="color: rgba(0, 128, 128, 1)">120</span>                     <span style="color: rgba(0, 0, 255, 1)">using</span> (MessageDigestContext sha256 = <span style="color: rgba(0, 0, 255, 1)">new</span><span style="color: rgba(0, 0, 0, 1)"> MessageDigestContext(MessageDigest.SHA256))
+</span><span style="color: rgba(0, 128, 128, 1)">121</span> <span style="color: rgba(0, 0, 0, 1)">                    {
+</span><span style="color: rgba(0, 128, 128, 1)">122</span>                         <span style="color: rgba(0, 0, 255, 1)">byte</span>[] msgByte =<span style="color: rgba(0, 0, 0, 1)"> encoding.GetBytes(text);
+</span><span style="color: rgba(0, 128, 128, 1)">123</span>                         <span style="color: rgba(0, 0, 255, 1)">byte</span>[] signByte =<span style="color: rgba(0, 0, 0, 1)"> Convert.FromBase64String(sign);
+</span><span style="color: rgba(0, 128, 128, 1)">124</span>                         <span style="color: rgba(0, 0, 255, 1)">return</span><span style="color: rgba(0, 0, 0, 1)"> sha256.Verify(msgByte, signByte, cryptoKey);
+</span><span style="color: rgba(0, 128, 128, 1)">125</span> <span style="color: rgba(0, 0, 0, 1)">                    }
+</span><span style="color: rgba(0, 128, 128, 1)">126</span> <span style="color: rgba(0, 0, 0, 1)">                }
+</span><span style="color: rgba(0, 128, 128, 1)">127</span> <span style="color: rgba(0, 0, 0, 1)">            }
+</span><span style="color: rgba(0, 128, 128, 1)">128</span> <span style="color: rgba(0, 0, 0, 1)">        }
+</span><span style="color: rgba(0, 128, 128, 1)">129</span>     }</pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="複製代碼"><img src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/copycode.gif" alt="複製代碼"></a></span></div></div>
+<p>&nbsp;</p>
+</div>
+<div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="EntryTag">
+    标签: 
+            <a href="https://www.cnblogs.com/azeri/tag/OpenSSL.Net/">OpenSSL.Net</a></div>
+
+    <div id="blog_post_info">
+<div id="green_channel">
+        <a href="javascript:void(0);" id="green_channel_digg" onclick="DiggIt(8973166,cb_blogId,1);green_channel_success(this,&#39;谢谢推荐！&#39;);">好文要顶</a>
+        <a id="green_channel_follow" onclick="follow(&#39;02e32f40-c7ee-df11-ac81-842b2b196315&#39;);" href="javascript:void(0);">关注我</a>
+    <a id="green_channel_favorite" onclick="AddToWz(cb_entryId);return false;" href="javascript:void(0);">收藏该文</a>
+    <a id="green_channel_weibo" href="javascript:void(0);" title="分享至新浪微博" onclick="ShareToTsina()"><img src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/icon_weibo_24.png" alt=""></a>
+    <a id="green_channel_wechat" href="javascript:void(0);" title="分享至微信" onclick="shareOnWechat()"><img src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/wechat.png" alt=""></a>
+</div>
+<div id="author_profile">
+    <div id="author_profile_info" class="author_profile_info">
+            <a href="https://home.cnblogs.com/u/azeri/" target="_blank"><img src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/20150615191423.png" class="author_avatar" alt=""></a>
+        <div id="author_profile_detail" class="author_profile_info">
+            <a href="https://home.cnblogs.com/u/azeri/">Azeri</a><br>
+            <a href="https://home.cnblogs.com/u/azeri/followees/">关注 - 130</a><br>
+            <a href="https://home.cnblogs.com/u/azeri/followers/">粉丝 - 4</a>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <div id="author_profile_honor"></div>
+    <div id="author_profile_follow">
+                <a href="javascript:void(0);" onclick="follow(&#39;02e32f40-c7ee-df11-ac81-842b2b196315&#39;);return false;">+加关注</a>
+    </div>
+</div>
+<div id="div_digg">
+    <div class="diggit" onclick="votePost(8973166,&#39;Digg&#39;)">
+        <span class="diggnum" id="digg_count">0</span>
+    </div>
+    <div class="buryit" onclick="votePost(8973166,&#39;Bury&#39;)">
+        <span class="burynum" id="bury_count">0</span>
+    </div>
+    <div class="clear"></div>
+    <div class="diggword" id="digg_tips">
+    </div>
+</div>
+
+<script type="text/javascript">
+    currentDiggType = 0;
+</script></div>
+    <div class="clear"></div>
+    <div id="post_next_prev">
+
+    <a href="https://www.cnblogs.com/azeri/p/8972432.html" class="p_n_p_prefix">« </a> 上一篇：    <a href="https://www.cnblogs.com/azeri/p/8972432.html" title="發佈於2018-04-30 00:39">OpenSSL.Net使用随记</a>
+    <br>
+    <a href="https://www.cnblogs.com/azeri/p/8987277.html" class="p_n_p_prefix">» </a> 下一篇：    <a href="https://www.cnblogs.com/azeri/p/8987277.html" title="發佈於2018-05-03 20:21">OpenSSL.Net使用随记（三）</a>
+
+</div>
+</div></div>
+		<p class="postfoot">
+			posted on 
+<span id="post-date">2018-04-30 16:48</span>&nbsp;
+<a href="https://www.cnblogs.com/azeri/">Azeri</a>&nbsp;
+阅读(<span id="post_view_count">331</span>)&nbsp;
+评论(<span id="post_comment_count">0</span>)&nbsp;
+<a href="https://i.cnblogs.com/EditPosts.aspx?postid=8973166" rel="nofollow">编辑</a>&nbsp;
+<a href="javascript:void(0)" onclick="AddToWz(8973166);return false;">收藏</a>
+		</p>
+	</div>
+	
+	
+	
+<script src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/highlight.min.js.下載"></script>
+<script>markdown_highlight();</script>
+<script>
+    var allowComments = true, cb_blogId = 81630, cb_blogApp = 'azeri', cb_blogUserGuid = '02e32f40-c7ee-df11-ac81-842b2b196315';
+    var cb_entryId = 8973166, cb_entryCreatedDate = '2018-04-30 16:48', cb_postType = 1;
+    updatePostStats(
+        [cb_entryId],
+        function(id, count) { $("#post_view_count").text(count) },
+        function(id, count) { $("#post_comment_count").text(count) })
+    zoomManager.apply("#cnblogs_post_body img:not(.code_img_closed):not(.code_img_opened)");
+</script>
+<a name="!comments"></a>
+<div id="blog-comments-placeholder"></div>
+<div id="comment_form" class="commentform">
+    <a name="commentform"></a>
+    <div id="divCommentShow"></div>
+    <div id="comment_nav"><span id="span_refresh_tips"></span><a href="javascript:void(0);" onclick="return RefreshCommentList();" id="lnk_RefreshComments" runat="server" clientidmode="Static">刷新评论</a><a href="https://www.cnblogs.com/azeri/p/8973166.html#" onclick="return RefreshPage();">刷新页面</a><a href="https://www.cnblogs.com/azeri/p/8973166.html#top">返回顶部</a></div>
+    <div id="comment_form_container" style="visibility: visible;"><div class="login_tips">
+    登录后才能发表评论，立即 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return login(&#39;commentform&#39;);">登录</a> 或
+    <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return register();">注册</a>，
+    <a href="https://www.cnblogs.com/">访问</a> 网站首页
+</div>
+</div>
+    <div class="ad_text_commentbox" id="ad_text_under_commentbox"></div>
+    <div id="ad_t2"><a href="https://developer.aliyun.com/learning/trainingcamp/sc/3?utm_content=g_1000248097" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-阿里云-flink&#39;)">【推荐】阿里云实时计算训练营重磅开启，4天技能突破，抢天猫精灵！</a><br><a href="https://developer.aliyun.com/learning/topic/covid-19/2021?utm_content=g_1000240877" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-阿里云-offer&#39;)">【推荐】阿里云春招即将开始，提前下载面试宝典稳拿Offer</a><br><a href="https://developer.aliyun.com/learning/trainingcamp/java/2?utm_content=g_1000245293" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-阿里云-java2&#39;)">【推荐】阿里云Java训练营--就5天，名师带你实战Spring Boot 2.5</a><br><a href="https://developer.aliyun.com/topic/haoyun?utm_content=g_1000241555" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-阿里云-好云&#39;)">【推荐】免费领最高6000元好云礼！15种权益祝你云气爆棚</a><br><a href="http://www.uccpsoft.com/index.htm" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-ucancode&#39;)">【推荐】大型组态、工控、仿真、CAD\GIS 50万行VC++源码免费下载!</a><br><a href="https://www.cnblogs.com/cmt/p/14469606.html" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-AWS&#39;)">【推荐】注册 Amazon Web Services(AWS) 账号，成为博客园赞助者</a><br><a href="https://brands.cnblogs.com/huawei" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-华为专区&#39;)">【推荐】华为HMS Core Discovery直播间-七个推送技巧带你玩转App运营</a><br></div>
+    <div id="opt_under_post"></div>
+    <div id="cnblogs_c1" class="under-post-card">
+        <div id="div-gpt-ad-1592365906576-0" style="width: 300px; height: 250px;" data-google-query-id="CJnGqMeqpe8CFch0KgodlTMOiQ"><div id="google_ads_iframe_/1090369/C1_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/1090369/C1_0" title="3rd party ad content" name="google_ads_iframe_/1090369/C1_0" width="300" height="250" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" data-google-container-id="1" style="border: 0px; vertical-align: bottom;" data-load-complete="true" src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/saved_resource.html"></iframe></div></div>
+    </div>
+    <div id="under_post_card1"><div class="under-post-card"><b>AWS免费产品</b>：<br>· <a onclick="ga(&quot;send&quot;, &quot;event&quot;, &quot;Link&quot;, &quot;click&quot;, &quot;aws-underpost-card&quot;)" href="https://aws.amazon.com/cn/free/webapps/?trk=ba_a134p000006vc6OAAQ&amp;trkCampaign=webapps&amp;sc_channel=ba&amp;sc_campaign=cnblogs&amp;sc_outcome=Acquisition&amp;sc_geo=CHNA&amp;sc_country=CN&amp;sc_publisher=Others" target="_blank">如何在AWS上免费构建网站</a><br>· <a onclick="ga(&quot;send&quot;, &quot;event&quot;, &quot;Link&quot;, &quot;click&quot;, &quot;aws-underpost-card&quot;)" href="https://aws.amazon.com/cn/free/storage/?trk=ba_a134p000006vc7JAAQ&amp;trkCampaign=storage&amp;sc_channel=ba&amp;sc_campaign=cnblogs&amp;sc_outcome=Acquisition&amp;sc_geo=CHNA&amp;sc_country=CN&amp;sc_publisher=Others" target="_blank">AWS免费云存储解决方案</a><br>· <a onclick="ga(&quot;send&quot;, &quot;event&quot;, &quot;Link&quot;, &quot;click&quot;, &quot;aws-underpost-card&quot;)" href="https://aws.amazon.com/cn/free/database/?trk=ba_a134p000006vc7YAAQ&amp;trkCampaign=database&amp;sc_channel=ba&amp;sc_campaign=cnblogs&amp;sc_outcome=Acquisition&amp;sc_geo=CHNA&amp;sc_country=CN&amp;sc_publisher=Others" target="_blank">在AWS上免费构建数据库</a><br>· <a onclick="ga(&quot;send&quot;, &quot;event&quot;, &quot;Link&quot;, &quot;click&quot;, &quot;aws-underpost-card&quot;)" href="https://aws.amazon.com/cn/free/machine-learning/?trk=ba_a134p000006vc7nAAA&amp;trkCampaign=ML&amp;sc_channel=ba&amp;sc_campaign=cnblogs&amp;sc_outcome=Acquisition&amp;sc_geo=CHNA&amp;sc_country=CN&amp;sc_publisher=Others" target="_blank">AWS上的免费机器学习</a></div></div>
+    <div id="cnblogs_c2" class="under-post-card">
+        <div id="div-gpt-ad-1592366332455-0" style="width: 468px; height: 60px;" data-google-query-id="CJrGqMeqpe8CFch0KgodlTMOiQ"><div id="google_ads_iframe_/1090369/C2_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/1090369/C2_0" title="3rd party ad content" name="google_ads_iframe_/1090369/C2_0" width="468" height="60" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" data-google-container-id="2" style="border: 0px; vertical-align: bottom;" data-load-complete="true" src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/saved_resource(1).html"></iframe></div></div>
+    </div>
+    <div id="under_post_card2"><div class="itnews under-post-card">
+    <b><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">最新新聞</font></font></b><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">：
+     </font></font><br><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+ ·          </font></font><a href="https://news.cnblogs.com/n/689912/" target="_blank"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">國際知名AI學者陶大程出任京東探索研究院院長</font></font></a>
+        <br><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+ ·           </font></font><a href="https://news.cnblogs.com/n/689911/" target="_blank"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">29歲網紅吃播“泡泡龍”去世曾靠“給自助餐廳上課”成名</font></font></a>
+        <br><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+ ·          </font></font><a href="https://news.cnblogs.com/n/689910/" target="_blank"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">換電風波“劇終”！</font><font style="vertical-align: inherit;">特斯拉工商變更：刪除“換電設施銷售”</font></font></a>
+        <br><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> 
+ ·          </font></font><a href="https://news.cnblogs.com/n/689908/" target="_blank"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">螞蟻森林價值首度公佈：5億人在手機上種樹種出113億</font></font></a>
+        <br><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+ ·          </font></font><a href="https://news.cnblogs.com/n/689909/" target="_blank"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">影視劇中的"滴血認親"有科學依據嗎？</font><font style="vertical-align: inherit;">終於明白了</font></font></a>
+        <br><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    »</font></font><a href="https://news.cnblogs.com/" title="IT 新聞" target="_blank"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">更多新聞...</font></font></a>
+</div></div>
+    <div id="HistoryToday" class="under-post-card"></div>
+    <script type="text/javascript">
+       var commentManager = new blogCommentManager();
+       commentManager.renderComments(0);
+       fixPostBody();
+       deliverBigBanner();
+setTimeout(function() { incrementViewCount(cb_entryId); }, 50);       deliverT2();
+       deliverC1C2();
+       loadNewsAndKb();
+       loadBlogSignature();
+LoadPostCategoriesTags(cb_blogId, cb_entryId);       LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+       GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate, cb_postType);
+       loadOptUnderPost();
+       GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);
+    </script>
+</div>
+
+</div>
+
+
+</div>
+<div id="rightmenu">
+	
+		
+<h3><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">導航</font></font></h3>
+<ul>
+<li><a id="blog_nav_sitehome" class="menu" href="https://www.cnblogs.com/"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+博客園</font></font></a>
+</li>
+<li>
+<a id="blog_nav_myhome" class="menu" href="https://www.cnblogs.com/azeri/"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+首頁</font></font></a>
+</li>
+<li>
+
+<a id="blog_nav_newpost" class="menu" href="https://i.cnblogs.com/EditPosts.aspx?opt=1"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+新隨筆</font></font></a>
+</li>
+<li>
+<a id="blog_nav_contact" class="menu" href="https://msg.cnblogs.com/send/Azeri"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+聯繫</font></font></a></li>
+<li>
+<a id="blog_nav_rss" class="menu" href="javascript:void(0)" data-rss="https://www.cnblogs.com/azeri/rss/"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+訂閱</font></font></a>
+<a id="blog_nav_rss_image" href="https://www.cnblogs.com/azeri/rss/">
+    <img src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/xml.gif" alt="訂閱">
+</a></li>
+<li>
+<a id="blog_nav_admin" class="menu" href="https://i.cnblogs.com/"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+管理</font></font></a>
+</li>
+</ul>
+
+
+		<div id="sidebar_news" class="newsItem"><h3><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">公告</font></font></h3>
+<div class="newsItem">
+	
+<div id="blog-news">
+    
+    <div id="profile_block"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        暱稱：
+         </font></font><a href="https://home.cnblogs.com/u/azeri/"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+            Azeri
+        </font></font></a>
+        <br><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        園齡：
+         </font></font><a href="https://home.cnblogs.com/u/azeri/" title="入園時間：2010-11-13"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+            10年3個月
+        </font></font></a>
+        <br><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        粉絲：
+         </font></font><a href="https://home.cnblogs.com/u/azeri/followers/"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+            4
+        </font></font></a>
+        <br><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        關注：
+         </font></font><a href="https://home.cnblogs.com/u/azeri/followees/"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+            130
+        </font></font></a>
+        <div id="p_b_follow">
+<a href="javascript:void(0)" onclick="follow(&#39;02e32f40-c7ee-df11-ac81-842b2b196315&#39;)"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">+加關注</font></font></a></div>
+        <script>getFollowStatus('02e32f40-c7ee-df11-ac81-842b2b196315');</script>
+    </div>
+</div>
+</div>
+
+</div>
+<div id="sidebar_c3"></div>					
+		<div id="blog-calendar" style="">
+
+<table id="blogCalendar" class="Cal" cellspacing="0" cellpadding="0" title="Calendar" border="0">
+    <tbody>
+        <tr>
+            <td colspan="7">
+                <table class="CalTitle" cellspacing="0" border="0">
+                    <tbody>
+                        <tr>
+                            <td class="CalNextPrev">
+                                <a href="javascript:void(0);" onclick="loadBlogCalendar(&#39;2021/02/10&#39;); return false;"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">&lt;</font></font></a>
+                            </td>
+                            <td align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">2021年3月</font></font></td>
+                            <td align="right" class="CalNextPrev">
+                                <a href="javascript:void(0);" onclick="loadBlogCalendar(&#39;2021/04/10&#39;); return false;"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">&gt;</font></font></a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    <tr>
+        <th class="CalDayHeader" align="center" abbr="日" scope="col"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">日</font></font></th>
+        <th class="CalDayHeader" align="center" abbr="一" scope="col"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">一</font></font></th>
+        <th class="CalDayHeader" align="center" abbr="二" scope="col"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">二</font></font></th>
+        <th class="CalDayHeader" align="center" abbr="三" scope="col"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">三</font></font></th>
+        <th class="CalDayHeader" align="center" abbr="四" scope="col"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">四</font></font></th>
+        <th class="CalDayHeader" align="center" abbr="五" scope="col"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">五</font></font></th>
+        <th class="CalDayHeader" align="center" abbr="六" scope="col"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">六</font></font></th>
+    </tr>
+            <tr>
+                            <td class="CalOtherMonthDay" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">28</font></font></td>
+                        <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            1
+                        </font></font></td>
+                        <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            2
+                        </font></font></td>
+                        <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            3
+                        </font></font></td>
+                        <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            4
+                        </font></font></td>
+                        <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            5
+                        </font></font></td>
+                    <td class="CalWeekendDay" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        6
+                    </font></font></td>
+            </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            7
+                        </font></font></td>
+                            <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                8
+                            </font></font></td>
+                            <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                9
+                            </font></font></td>
+                            <td class="CalTodayDay" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                10
+                            </font></font></td>
+                            <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                11
+                            </font></font></td>
+                            <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                12
+                            </font></font></td>
+                        <td class="CalWeekendDay" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            13
+                        </font></font></td>
+                </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            14
+                        </font></font></td>
+                            <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                15
+                            </font></font></td>
+                            <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                16
+                            </font></font></td>
+                            <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                17
+                            </font></font></td>
+                            <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                18
+                            </font></font></td>
+                            <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                19
+                            </font></font></td>
+                        <td class="CalWeekendDay" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            20
+                        </font></font></td>
+                </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            21
+                        </font></font></td>
+                            <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                22
+                            </font></font></td>
+                            <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                23
+                            </font></font></td>
+                            <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                24
+                            </font></font></td>
+                            <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                25
+                            </font></font></td>
+                            <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                26
+                            </font></font></td>
+                        <td class="CalWeekendDay" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            27
+                        </font></font></td>
+                </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            28
+                        </font></font></td>
+                            <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                29
+                            </font></font></td>
+                            <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                30
+                            </font></font></td>
+                            <td class="" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                31
+                            </font></font></td>
+                            <td class="CalOtherMonthDay" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                1
+                            </font></font></td>
+                            <td class="CalOtherMonthDay" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                2
+                            </font></font></td>
+                        <td class="CalOtherMonthDay" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            3
+                        </font></font></td>
+                </tr>
+                <tr>
+                        <td class="CalOtherMonthDay" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            4
+                        </font></font></td>
+                            <td class="CalOtherMonthDay" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                5
+                            </font></font></td>
+                            <td class="CalOtherMonthDay" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                6
+                            </font></font></td>
+                            <td class="CalOtherMonthDay" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                7
+                            </font></font></td>
+                            <td class="CalOtherMonthDay" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                8
+                            </font></font></td>
+                            <td class="CalOtherMonthDay" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                9
+                            </font></font></td>
+                        <td class="CalOtherMonthDay" align="center"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            10
+                        </font></font></td>
+                </tr>
+    </tbody>
+</table></div><script>loadBlogDefaultCalendar();</script>
+		<div id="blog_stats_place_holder"><script>loadBlogStats();</script></div>
+		<div id="blog-sidecolumn"><!-- 搜索 -->
+<div id="sidebar_search" class="sidebar-block">
+    <div id="sidebar_search" class="mySearch">
+        <h3 class="catListTitle"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">搜索</font></font></h3>
+        <div id="sidebar_search_box">
+            <div id="widget_my_zzk" class="div_my_zzk">
+                <input type="text" id="q" onkeydown="return zzk_go_enter(event);" class="input_my_zzk">&nbsp;<font style="vertical-align: inherit;"><font style="vertical-align: inherit;"><input onclick="zzk_go()" type="button" value="找找看" id="btnZzk" class="btn_my_zzk"></font></font>
+            </div>
+            <div id="widget_my_google" class="div_my_zzk">
+                <input type="text" name="google_q" id="google_q" onkeydown="return google_go_enter(event);" class="input_my_zzk">&nbsp;<font style="vertical-align: inherit;"><font style="vertical-align: inherit;"><input onclick="google_go()" type="button" value="谷歌搜索" class="btn_my_zzk"></font></font>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 常用链接 -->
+<div id="sidebar_shortcut" class="sidebar-block">
+<h3 class="catListTitle"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+常用鏈接
+</font></font></h3>
+<ul>
+    
+<li><a href="https://www.cnblogs.com/azeri/p/" title="我的博客的隨筆列表"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">我的隨筆</font></font></a></li>
+<li><a href="https://www.cnblogs.com/azeri/MyComments.html" title="我的發表過的評論列表"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">我的評論</font></font></a></li>
+<li><a href="https://www.cnblogs.com/azeri/OtherPosts.html" title="我評論過的隨筆列表"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">我的參與</font></font></a></li>
+<li><a href="https://www.cnblogs.com/azeri/RecentComments.html" title="我的博客的評論列表"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">最新評論</font></font></a></li>
+<li><a href="https://www.cnblogs.com/azeri/tag/" title="我的博客的標籤列表"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">我的標籤</font></font></a></li>
+
+</ul>
+</div>
+
+<!-- 最新随笔 -->
+
+
+<!-- 我的标签 -->
+<div id="sidebar_toptags" class="sidebar-block">
+<h3><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">我的標籤</font></font></h3>
+<div id="MyTag">
+    <ul>
+                <li>
+            <a href="https://www.cnblogs.com/azeri/tag/OpenSSL.Net/"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">OpenSSL.Net </font></font><span class="tag-count"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">(4)</font></font></span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/azeri/tag/SFTP/"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">SFTP </font></font><span class="tag-count"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">(1)</font></font></span></a>
+        </li>
+    
+
+    </ul>
+</div>
+</div>
+
+<!-- 积分与排名 -->
+
+
+<!-- 随笔分类、随笔档案、文章分类、新闻分类、相册、链接 -->
+<div id="sidebar_categories">
+
+    <h3><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        
+隨筆檔案
+
+
+
+    </font></font></h3>
+    <ul>
+            <li data-category-list-item-visible="true" style="display: block">
+                
+<a href="https://www.cnblogs.com/azeri/archive/2018/09.html" rel="" target=""><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    2018年9月(1)
+</font></font></a>
+ 
+
+            </li>            
+            <li data-category-list-item-visible="true" style="display: block">
+                
+<a href="https://www.cnblogs.com/azeri/archive/2018/05.html" rel="" target=""><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    2018年5月(2)
+</font></font></a>
+ 
+
+            </li>            
+            <li data-category-list-item-visible="true" style="display: block">
+                
+<a href="https://www.cnblogs.com/azeri/archive/2018/04.html" rel="" target=""><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    2018年4月(2)
+</font></font></a>
+ 
+
+            </li>            
+        
+    </ul>
+</div>
+
+<!-- 最新评论 -->
+<div id="sidebar_recentcomments" class="sidebar-block"></div>
+
+
+<!-- 阅读排行榜 -->
+<div id="sidebar_topviewedposts" class="sidebar-block">
+<div id="topview_posts_wrap">
+    <h3 class="catListTitle"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">閱讀排行榜</font></font></h3>
+    <div id="TopViewPostsBlock">
+        <ul style="word-break:break-all">
+                    <li>
+                        <a href="https://www.cnblogs.com/azeri/p/9650979.html"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            1. SFTP免密碼登錄踏坑經歷(4521)
+                        </font></font></a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/azeri/p/8972432.html"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            2. OpenSSL.Net使用隨記(536)
+                        </font></font></a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/azeri/p/8973166.html"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            3. OpenSSL.Net使用隨記（二）(331)
+                        </font></font></a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/azeri/p/8987294.html"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            4. OpenSSL.Net使用隨記（四）(321)
+                        </font></font></a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/azeri/p/8987277.html"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            5. OpenSSL.Net使用隨記（三）(304)
+                        </font></font></a>
+                    </li>
+        </ul>
+    </div>
+</div></div>
+
+<!-- 评论排行榜 -->
+<div id="sidebar_topcommentedposts" class="sidebar-block"></div>
+
+<!-- 推荐排行榜 -->
+<div id="sidebar_topdiggedposts" class="sidebar-block"></div></div>
+                    <script>loadBlogSideColumn();</script>
+		<div id="footer"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+	Powered by: 
+	</font></font><br>
+	<a href="https://www.cnblogs.com/" id="footer_site_link"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">博客園</font></font></a>
+	<br><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+	Copyright © 2021 Azeri
+ </font></font><br><span id="poweredby"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Powered by .NET 5.0 on Kubernetes</font></font></span>
+
+</div>
+
+
+	
+</div>			
+			
+	
+
+
+    
+
+    <input type="hidden" id="antiforgery_token" value="CfDJ8EklyHYHyB5Oj4onWtxTnxaqUyEbMMUewYwdV0cTpwh8Lg-qXLLgbp_Mtn0AzH8iYjtuDi3-C9RissjyUUbC-c3KigUJnrerF0DIEMBPo6TlaLeOmrnrkQ_2xRZNO_WsQ3zZHTFH8YW0JTObZuQPAeQ">
+
+
+<div id="goog-gt-tt" class="skiptranslate" dir="ltr"><div style="padding: 8px;"><div><div class="logo"><img src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/translate_24dp.png" width="20" height="20" alt="Google 翻譯"></div></div></div><div class="top" style="padding: 8px; float: left; width: 100%;"><h1 class="title gray">原文</h1></div><div class="middle" style="padding: 8px;"><div class="original-text"></div></div><div class="bottom" style="padding: 8px;"><div class="activity-links"><span class="activity-link">建議更好的譯法</span><span class="activity-link"></span></div><div class="started-activity-container"><hr style="color: #CCC; background-color: #CCC; height: 1px; border: none;"><div class="activity-root"></div></div></div><div class="status-message" style="display: none;"></div></div><iframe id="google_osd_static_frame_9811420985723" name="google_osd_static_frame" style="display: none; width: 0px; height: 0px;" src="./OpenSSL.Net使用隨記（二） - Azeri - 博客園_files/saved_resource(2).html"></iframe><div class="goog-te-spinner-pos"><div class="goog-te-spinner-animation"><svg xmlns="http://www.w3.org/2000/svg" class="goog-te-spinner" width="96px" height="96px" viewBox="0 0 66 66"><circle class="goog-te-spinner-path" fill="none" stroke-width="6" stroke-linecap="round" cx="33" cy="33" r="30"></circle></svg></div></div></body></html>

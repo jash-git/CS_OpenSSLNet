@@ -1,0 +1,10 @@
+C:\Users\jashliao\Desktop\CS_OpenSSLNet\CS_OpenSSLNet\bin\Release\CS_OpenSSLNet.exe.config
+C:\Users\jashliao\Desktop\CS_OpenSSLNet\CS_OpenSSLNet\bin\Release\CS_OpenSSLNet.exe
+C:\Users\jashliao\Desktop\CS_OpenSSLNet\CS_OpenSSLNet\bin\Release\CS_OpenSSLNet.pdb
+C:\Users\jashliao\Desktop\CS_OpenSSLNet\CS_OpenSSLNet\obj\Release\CS_OpenSSLNet.exe
+C:\Users\jashliao\Desktop\CS_OpenSSLNet\CS_OpenSSLNet\obj\Release\CS_OpenSSLNet.pdb
+C:\Users\jashliao\Desktop\CS_OpenSSLNet\CS_OpenSSLNet\bin\Release\x86\libeay32.dll
+C:\Users\jashliao\Desktop\CS_OpenSSLNet\CS_OpenSSLNet\bin\Release\x86\ssleay32.dll
+C:\Users\jashliao\Desktop\CS_OpenSSLNet\CS_OpenSSLNet\bin\Release\ManagedOpenSsl.dll
+C:\Users\jashliao\Desktop\CS_OpenSSLNet\CS_OpenSSLNet\bin\Release\ManagedOpenSsl.xml
+C:\Users\jashliao\Desktop\CS_OpenSSLNet\CS_OpenSSLNet\obj\Release\CS_OpenSSLNet.csprojResolveAssemblyReference.cache
