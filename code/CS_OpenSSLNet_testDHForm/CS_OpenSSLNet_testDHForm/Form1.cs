@@ -1,28 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 using OpenSSL.Core;
 using OpenSSL.Crypto;
 using OpenSSL.Crypto.EC;
+using System.Security.Cryptography;
 
 //https://www.cnblogs.com/azeri/p/8972432.html
 //https://github.com/openssl-net/openssl-net
 
-namespace CS_OpenSSLNet
-{
-    class Program 
-    {
-        static void Pause()
-        {
-            Console.Write("Press any key to continue...");
-            Console.ReadKey(true);
-        }
 
-        public static byte [] g_bytGSYCGAATDHKEParametersBaseNumber2048 = new byte[] {(0x02),};
-        public static byte [] g_bytGSYCGAATDHKEParametersPrimeNumber2048 = new byte[256]
+namespace CS_OpenSSLNet_testDHForm
+{
+    public partial class Form1 : Form
+    {
+        public DH CS_DH;
+        public static byte[] g_bytGSYCGAATDHKEParametersBaseNumber2048 = new byte[] { (0x02), };
+        public static byte[] g_bytGSYCGAATDHKEParametersPrimeNumber2048 = new byte[256]
         {
         (0xB0), (0xEE), (0x83), (0x99), (0x7E), (0x22), (0x23), (0x28), (0xF6), (0x06), (0x5B), (0x47),
         (0x89), (0x7A), (0x93), (0x01), (0xE6), (0x90), (0x34), (0x2F), (0x2F), (0x8F), (0xF3), (0x9F),
@@ -47,6 +48,7 @@ namespace CS_OpenSSLNet
         (0x35), (0x81), (0xD6), (0xC6), (0x2F), (0x14), (0xA8), (0xFE), (0x75), (0x5E), (0xC8), (0x45),
         (0x32), (0x52), (0xC3), (0x23),
         };
+
         static public String Base64_encode(String StrData)
         {
             //https://www.base64encode.net/
@@ -61,29 +63,82 @@ namespace CS_OpenSSLNet
             StrAns = Convert.ToBase64String(byteData);
             return StrAns;
         }
-        static void Main(string[] args)
+
+        static public byte[] bytBase64_decode(String StrData)
         {
-            //BigNumber BN_num_bytes = new BigNumber();
-            DH CS_DH = new DH();//DH_new()
+            //https://www.base64decode.net/
+            String StrAns;
+            byte[] data = System.Convert.FromBase64String(StrData);
+            StrAns = System.Text.ASCIIEncoding.ASCII.GetString(data);
+            return data;
+        }
+        static public String StrBase64_decode(String StrData)
+        {
+            //https://www.base64decode.net/
+            String StrAns;
+            byte[] data = System.Convert.FromBase64String(StrData);
+            StrAns = System.Text.ASCIIEncoding.ASCII.GetString(data);
+            return StrAns;
+        }
+
+        static public string ToHexString(byte[] bytes)
+        {
+            string hexString = string.Empty;
+            if (bytes != null)
+            {
+                StringBuilder str = new StringBuilder();
+
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    str.Append(bytes[i].ToString("X2"));
+                }
+                hexString = str.ToString();
+            }
+            return hexString;
+        }
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            CS_DH = new DH();//DH_new()
             CS_DH.P = BigNumber.FromArray(g_bytGSYCGAATDHKEParametersPrimeNumber2048);//(*pDH)->p = BN_bin2bn(g_bytGSYCGAATDHKEParametersPrimeNumber2048, sizeof(g_bytGSYCGAATDHKEParametersPrimeNumber2048), NULL);
             CS_DH.G = BigNumber.FromArray(g_bytGSYCGAATDHKEParametersBaseNumber2048);//(*pDH)->g = BN_bin2bn(g_bytGSYCGAATDHKEParametersBaseNumber2048, sizeof(g_bytGSYCGAATDHKEParametersBaseNumber2048), NULL);
 
             String m_lpParametersString = CS_DH.PEM.Replace("-----BEGIN DH PARAMETERS-----", "");
             m_lpParametersString = m_lpParametersString.Replace("-----END DH PARAMETERS-----", "");
             m_lpParametersString = m_lpParametersString.Replace("\n", "");//i2d_DHparams(pDH, lpParameters) + GSYCGAATBase64Encode(&lpParametersString, lpParameters, iLength)
-            Console.WriteLine("Parameters: {0}\n", m_lpParametersString);
+            richTextBox1.Text = m_lpParametersString;//Console.WriteLine("Parameters: {0}\n", m_lpParametersString);
 
             CS_DH.GenerateKeys();//iResult = DH_generate_key(pDH)
-            byte[] bybuf=new byte[256];
+            byte[] bybuf = new byte[256];
             CS_DH.PublicKey.ToBytes(bybuf);//iPublicKeyLength = BN_num_bytes(pDH->pub_key);
             String m_lpPublicKeyString = Base64_encode(bybuf);//GSYCGAATBase64Encode(&lpPublicKeyString, lpPublicKey, iLength)
-            Console.WriteLine("Public Key: {0}\n", m_lpPublicKeyString);
+            richTextBox2.Text = m_lpPublicKeyString; //Console.WriteLine("Public Key: {0}\n", m_lpPublicKeyString);
+        }
 
-            Console.WriteLine("DHKE: Ready!");
+        private void button1_Click(object sender, EventArgs e)
+        {
+            byte[] lpPublicKey = bytBase64_decode(richTextBox3.Text);//GSYCGAATBase64Decode(&lpPublicKey, m_lpPublicKeyString, m_dwPublicKeyStringLength)
+            byte[] lpEncryptedSecret = bytBase64_decode(richTextBox4.Text);//GSYCGAATBase64Decode(&lpEncryptedSecret, m_strEncryptedSecretString, iLength)
+            byte[] lpPrivatekey = CS_DH.ComputeKey(BigNumber.FromArray(lpPublicKey));//lpPublicKeyBN = BN_bin2bn(lpPublicKey, iPublicKeyLength, NULL) + DH_compute_key(lpPrivatekey, lpPublicKeyBN, pDH)
 
-            CS_DH.PrivateKey.ToBytes(bybuf);
+            SHA256 sha256 = new SHA256CryptoServiceProvider();
+            byte[] bytSecureHashAlgorithmCode= sha256.ComputeHash(lpPrivatekey);//GSYCGAATSHA256(bytSecureHashAlgorithmCode, lpPrivatekey, iPrivatekeyLength);
+            byte[] bytAESKey = new byte[16];
+            Array.Copy(bytSecureHashAlgorithmCode, 16, bytAESKey, 0, bytAESKey.Length);//memcpy(bytAESKey, &(bytSecureHashAlgorithmCode[GSYCGAAT_SHA256_CODE_LENGTH / 2]), GSYCGAAT_AES_KEY_LENGTH);
 
-            Pause();
+            SyrisAES.KeySize keysize;
+            keysize = SyrisAES.KeySize.Bits128;
+            Array.Copy(bytAESKey, 0, SyrisAES.AESKey, 0, SyrisAES.AESKey.Length);
+            SyrisAES a = new SyrisAES(keysize);
+            byte[] outputByteArray = new byte[16];
+            a.UnAES(lpEncryptedSecret, outputByteArray);//GSYCGAATAES128ECBDecrypt((*lpSecret), lpSecretCipher, GSYCGAAT_AES_UNIT_LENGTH, bytAESKey)
+            richTextBox5.Text= ToHexString(outputByteArray);//GSYCGAATBinaryToHEXString(strSecretCodeString, m_bytSecretCode, GSYCGAAT_SECRET_LENGTH);
+
+
         }
     }
 }
